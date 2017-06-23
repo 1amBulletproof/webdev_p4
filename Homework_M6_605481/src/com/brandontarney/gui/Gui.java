@@ -16,6 +16,7 @@ import com.brandontarney.bookingrate.BookingSummary;
 
 import com.brandontarney.controller.Controller;
 import com.brandontarney.controller.BadRateException;
+import java.io.IOException;
 import javax.swing.JOptionPane;
 
 /** GUI (View - MVC) 
@@ -25,10 +26,12 @@ import javax.swing.JOptionPane;
 public class Gui extends javax.swing.JFrame {
 
     private Rates rate;
+    private String finalRate;
     private int year;
     private int month;
     private int day;
     private int duration;
+
 
     /**
      * Creates new form Gui
@@ -301,16 +304,18 @@ public class Gui extends javax.swing.JFrame {
 
     private void submitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitButtonActionPerformed
         try {
-            Gui.this.rate = Controller.computeRate(
-                    Gui.this.rate, Gui.this.duration, Gui.this.year, Gui.this.month, Gui.this.day);
+            Gui.this.finalRate = Controller.computeRate(
+                    Gui.this.rate.getHike(), Gui.this.duration, Gui.this.year, Gui.this.month, Gui.this.day);
 
-            double cost = Gui.this.rate.getCost();
-            Gui.this.costText.setText("$" + Double.toString(cost));
+            //double cost = Gui.this.rate.getCost();
+            //Gui.this.costText.setText("$" + Double.toString(cost));
 
-            String details = BookingSummary.summarize(Gui.this.rate);
-            Gui.this.detailsText.setText(details);
+            //String details = BookingSummary.summarize(Gui.this.rate);
+            Gui.this.detailsText.setText(Gui.this.finalRate);
         } catch (BadRateException exception) {
             //JOptionDialog
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "ERROR", 0);
+        } catch (IOException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "ERROR", 0);
         }
     }//GEN-LAST:event_submitButtonActionPerformed
