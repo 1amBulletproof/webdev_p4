@@ -13,6 +13,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Controller (MVC) - MVC Architecture: "Gui" = View, "Controller" = Controller,
@@ -30,29 +33,19 @@ public class Controller {
      * @param day time of hike
      *
      * @return Final rate information for hike
-     * @throws BadRateException
+     * @throws BadRateException, IOException
      */
-    public static String computeRate(
+    public static String[] computeRate(
             Rates.HIKE hike, int duration, int year, int month, int day)
             throws BadRateException, IOException {
 
-        /*
-        modify your last homework to connect to a socket server to get the quote information instead of using the Rates and BookingDay classes.
-The BHC server will be on <128.220.101.240>:20025. It expects data in the form of hike_id:begin_year:begin_month:begin_day:duration (e.g: 1:2008:7:1:3)
-Gardiner Lake is hike_id 0, with durations of 3 or 5 days
-Hellroaring Plateu is hike_id 1, with durations of 2, 3, or 4 days
-Beaten Path is hike_id 2, with durations of 5 or 7 days
-January is month 1, and the years are in four digits, and all values are separated by ":"s
-The returned result will be the cost followed by a ":", followed by some text. If things go well, you'll get the cost and the text "Quoted Rate", if there is a problem, the cost will by -0.01 and the text will have some explanation. You will need to parse the return results and display them in your GUI. You are not responsible for the logic of the rate quote, as the server will handle it. All you are doing is designing the GUI client and then displaying the results from the server.
-         */
-        //TODO: new quotes from a server (create client)
         //1. Create a socket object
         String host = "128.220.101.240";
         int port = 20025;
         Socket socket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        
+
         try {
             socket = new Socket(host, port);
 
@@ -68,49 +61,68 @@ The returned result will be the cost followed by a ":", followed by some text. I
             System.err.println("Couldn't get I/O for web6.jhuep.com");
             System.exit(1);
         }
+
         //4. Do I/O with the server using I/O streams
-        //  - try wrapping the stream in a buffer/writer i.e. PrintWriter printOut = new PrintWriter(socket.getOUtputStream(), true);
-        //      - BufferedReader bin = new BufferedReader(new InputStreamreader(socket.getInputStream));
-        out.println("1:2017:7:1:3");
-        String returnRate = in.readLine();
-        
+        int hikeInt = hike.getValue();
+        String serverInput = "" + hikeInt + ":" + year + ":" + month + ":" + day + ":" + duration;
+        out.println(serverInput);
+
+        String serverInfo = in.readLine();
+
         //5. Close stuff
         out.close();
         in.close();
         socket.close();
 
-        
-        if (returnRate == "") {
+        //returnRateAndDescription[0] = rate, returnRateAndDescription[1] = description
+        String[] returnRateAndDescription = parseServerString(serverInfo);
+
+        System.out.println(returnRateAndDescription[0]);
+        if (returnRateAndDescription[0] == null
+                || returnRateAndDescription[0].isEmpty()) {
             throw new BadRateException("No Rate Provided by Server");
+        } else if (returnRateAndDescription[0].equals("-0.01")) {
+            throw new BadRateException(returnRateAndDescription[1]);
         }
-        
-        return returnRate;
 
-        /*
-        BookingDay startDate = new BookingDay(year, month, day);
+        returnRateAndDescription[1] = getHikeDetails(
+                hike, duration, year, month, day);
 
-        rate.setBeginDate(startDate);
-        rate.setDuration(duration);
-        
-        LocalDate today = LocalDate.now();
-        int todayDay = today.getDayOfMonth();
-        int todayMonth = today.getMonthValue();
-        int todayYear = today.getYear();
-        
-        BookingDay todayBookingDay = new BookingDay(todayYear, todayMonth, todayDay);
+        return returnRateAndDescription;
+    }
 
-        if (rate.isValidDates() == false) {
-            throw new BadRateException(rate.getDetails());
-        } else if (startDate.before(todayBookingDay)) {
-            throw new BadRateException("Start Date before today's date");
-        }
-        
-        return rate;
-         */
+    public static String[] parseServerString(String serverInfo) {
+        String[] returnVal;
+
+        returnVal = serverInfo.split(":");
+
+        System.out.println(returnVal[0]);
+        System.out.println(returnVal[1]);
+
+        return returnVal;
+    }
+
+    public static String getHikeDetails(
+            Rates.HIKE hike, int duration, int year, int month, int day) {
+        StringBuilder summary = new StringBuilder();
+
+        BookingDay beginDate = new BookingDay(year, month, day);
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        Date startDate = beginDate.getDate().getTime();
+        String startDateStr = df.format(startDate);
+
+        summary = summary.append("You just booked a hike!");
+        summary = summary.append("\nHike: " + hike.name());
+        summary = summary.append("\nStart: " + startDateStr);
+        summary = summary.append("\nLength:  " + duration);
+
+        return summary.toString();
     }
 
     /**
-     * Test the basic logic behind booking classes
+     * (OLD, NOT valid for network server modification) 
+     * Test the basic logic
+     * behind booking classes
      */
     public static void main(String[] args) {
         System.out.println("LogicTest Start");
