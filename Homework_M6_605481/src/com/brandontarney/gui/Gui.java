@@ -8,7 +8,6 @@
 package com.brandontarney.gui;
 
 import javax.swing.JComboBox;
-import com.sun.xml.internal.ws.util.StringUtils;
 
 import com.brandontarney.bookingrate.BookingDay;
 import com.brandontarney.bookingrate.Rates;
