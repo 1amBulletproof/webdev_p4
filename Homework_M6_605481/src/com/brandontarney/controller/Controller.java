@@ -77,7 +77,6 @@ public class Controller {
         //returnRateAndDescription[0] = rate, returnRateAndDescription[1] = description
         String[] returnRateAndDescription = parseServerString(serverInfo);
 
-        System.out.println(returnRateAndDescription[0]);
         if (returnRateAndDescription[0] == null
                 || returnRateAndDescription[0].isEmpty()) {
             throw new BadRateException("No Rate Provided by Server");
@@ -93,12 +92,7 @@ public class Controller {
 
     public static String[] parseServerString(String serverInfo) {
         String[] returnVal;
-
         returnVal = serverInfo.split(":");
-
-        System.out.println(returnVal[0]);
-        System.out.println(returnVal[1]);
-
         return returnVal;
     }
 
